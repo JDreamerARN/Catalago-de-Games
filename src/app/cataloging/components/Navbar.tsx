@@ -28,6 +28,7 @@ interface Game {
   rating?: number;
 }
 
+
 const gamesData: Game[] = [
   { name: "FORTNITE", releaseYear: 2017, rating: 8 },
   { name: "MINECRAFT", releaseYear: 2011, rating: 9 },

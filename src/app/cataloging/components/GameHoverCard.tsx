@@ -1,7 +1,6 @@
 import { Card, CardMedia, Typography, Box } from '@mui/material';
 import { useState, useEffect } from 'react';
 
-// Imagens de gameplay padrão
 const defaultGameplayImages = [
   "/design/doom93gameplay1.jpg",
   "/design/doom93gameplay2.jpg"

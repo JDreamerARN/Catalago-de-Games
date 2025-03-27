@@ -1,8 +1,11 @@
-import { Box, Card, CardMedia, IconButton } from '@mui/material';
+import { Box, Card, CardMedia, IconButton, useTheme } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { GameHoverCard } from './GameHoverCard';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 
 interface Game {
   name: string;
@@ -17,122 +20,196 @@ interface GamesCarouselProps {
 }
 
 export const GamesCarousel = ({ games, gamesPerPage = 5 }: GamesCarouselProps) => {
-  const [startIndex, setStartIndex] = useState(0);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const sliderRef = useRef<Slider>(null);
+  const theme = useTheme();
+
+  const settings = {
+    dots: false,
+    infinite: false,
+    speed: 300,
+    slidesToShow: gamesPerPage,
+    slidesToScroll: gamesPerPage,
+    swipeToSlide: true,
+    draggable: true,
+    arrows: false,
+    variableWidth: true, // Permite largura variável
+    responsive: [
+      {
+        breakpoint: theme.breakpoints.values.lg,
+        settings: {
+          slidesToShow: Math.min(4, gamesPerPage),
+          slidesToScroll: Math.min(4, gamesPerPage),
+        }
+      },
+      {
+        breakpoint: theme.breakpoints.values.md,
+        settings: {
+          slidesToShow: Math.min(3, gamesPerPage),
+          slidesToScroll: Math.min(3, gamesPerPage),
+        }
+      },
+      {
+        breakpoint: theme.breakpoints.values.sm,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 2
+        }
+      },
+      {
+        breakpoint: 480,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1
+        }
+      }
+    ]
+  };
 
   const handleNext = () => {
-    setStartIndex(prev => Math.min(prev + gamesPerPage, games.length - gamesPerPage));
+    sliderRef.current?.slickNext();
   };
 
   const handlePrev = () => {
-    setStartIndex(prev => Math.max(prev - gamesPerPage, 0));
-  };
-
-  // Calcula a margem esquerda para centralizar os cards
-  const calculateMarginLeft = () => {
-    const visibleCards = Math.min(gamesPerPage, games.length - startIndex);
-    const containerWidth = visibleCards * 208 + (visibleCards - 1) * 16; // 200px card + 8px border + gap
-    return `calc(50% - ${containerWidth / 2}px)`;
+    sliderRef.current?.slickPrev();
   };
 
   return (
     <Box sx={{ 
-      display: 'flex', 
-      alignItems: 'center', 
       position: 'relative',
       width: '100%',
-      justifyContent: 'center',
-      padding: '0 40px' // Adiciona padding geral
+      maxWidth: '100vw',
+      overflow: 'hidden',
+      px: { xs: 4, sm: 6 }, // Padding lateral responsivo
+      '&:hover .carousel-arrow': {
+        opacity: 1 // Mostra as setas ao passar o mouse
+      }
     }}>
+      {/* Seta esquerda - só aparece quando há itens para trás */}
       <IconButton 
         onClick={handlePrev} 
-        disabled={startIndex === 0}
+        className="carousel-arrow"
         sx={{ 
           color: '#17191B',
           position: 'absolute',
-          left: 0,
-          padding: '12px', // Aumenta a área clicável
-          margin: '0 8px',
+          left: 8,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 2,
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          opacity: 0, // Inicia invisível
+          transition: 'opacity 0.3s',
           '&:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.04)'
+            backgroundColor: 'rgba(255, 255, 255, 1)'
+          },
+          '&.slick-disabled': {
+            display: 'none !important'
           }
         }}
       >
         <ChevronLeftIcon fontSize="large" />
       </IconButton>
       
-      <Box sx={{ 
-        display: 'flex', 
-        gap: 2,
+      {/* Container principal do carrossel */}
+      <Box sx={{
+        width: '100%',
+        overflow: 'visible',
         position: 'relative',
-        marginLeft: calculateMarginLeft(),
-        transition: 'margin 0.3s ease'
+        '& .slick-slide': {
+          padding: '0 8px', // Espaçamento entre slides
+          boxSizing: 'border-box'
+        },
+        '& .slick-list': {
+          overflow: 'visible',
+          margin: '0 -8px' // Compensa o padding dos slides
+        }
       }}>
-        {games.slice(startIndex, startIndex + gamesPerPage).map((game, index) => (
-          <Box 
-            key={`${game.name}-${index}`} 
-            sx={{ position: 'relative' }}
-            onMouseEnter={() => setHoveredCard(index)}
-            onMouseLeave={() => setHoveredCard(null)}
-          >
-            <Card sx={{ 
-              width: 200,
-              height: 300,
-              borderRadius: 2,
-              boxShadow: 3,
-              transition: 'transform 0.3s',
-              '&:hover': {
-                transform: 'scale(1.03)'
-              }
-            }}>
-              <Box sx={{ 
-                height: '100%',
-                width: '100%',
-                overflow: 'hidden',
+        <Slider ref={sliderRef} {...settings}>
+          {games.map((game, index) => (
+            <Box 
+              key={`${game.name}-${index}`} 
+              sx={{ 
                 position: 'relative',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#17191B'
+                outline: 'none',
+                width: '200px !important', // Largura fixa para cada card
+              }}
+              onMouseEnter={() => setHoveredCard(index)}
+              onMouseLeave={() => setHoveredCard(null)}
+            >
+              <Card sx={{ 
+                width: 200,
+                height: 300,
+                borderRadius: 2,
+                boxShadow: 3,
+                transition: 'transform 0.3s',
+                '&:hover': {
+                  transform: 'scale(1.03)'
+                },
+                mx: 'auto'
               }}>
-                <CardMedia
-                  component="img"
-                  image={game.image}
-                  alt={game.name}
-                  sx={{ 
-                    height: 'auto',
-                    width: 'auto',
-                    maxHeight: '100%',
-                    maxWidth: '100%',
-                    objectFit: 'contain'
+                <Box sx={{ 
+                  height: '100%',
+                  width: '100%',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: '#17191B'
+                }}>
+                  <CardMedia
+                    component="img"
+                    image={game.image}
+                    alt={game.name}
+                    sx={{ 
+                      height: 'auto',
+                      width: 'auto',
+                      maxHeight: '100%',
+                      maxWidth: '100%',
+                      objectFit: 'contain'
+                    }}
+                  />
+                </Box>
+              </Card>
+              
+              {hoveredCard === index && (
+                <Box 
+                  sx={{
+                    position: 'absolute',
+                    left: 'calc(100% + 16px)',
+                    top: 0,
+                    zIndex: 20
                   }}
-                />
-              </Box>
-            </Card>
-            
-            {hoveredCard === index && (
-              <Box 
-                onMouseEnter={(e) => e.stopPropagation()}
-                onMouseLeave={() => setHoveredCard(null)}
-              >
-                <GameHoverCard game={game} />
-              </Box>
-            )}
-          </Box>
-        ))}
+                  onMouseEnter={() => setHoveredCard(index)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                >
+                  <GameHoverCard game={game} />
+                </Box>
+              )}
+            </Box>
+          ))}
+        </Slider>
       </Box>
       
+      {/* Seta direita - só aparece quando há itens para frente */}
       <IconButton 
         onClick={handleNext} 
-        disabled={startIndex + gamesPerPage >= games.length}
+        className="carousel-arrow"
         sx={{ 
           color: '#17191B',
           position: 'absolute',
-          right: 0,
-          padding: '12px', // Aumenta a área clicável
-          margin: '0 8px',
+          right: 8,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 2,
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          opacity: 0, // Inicia invisível
+          transition: 'opacity 0.3s',
           '&:hover': {
-            backgroundColor: 'rgba(0, 0, 0, 0.04)'
+            backgroundColor: 'rgba(255, 255, 255, 1)'
+          },
+          '&.slick-disabled': {
+            display: 'none !important'
           }
         }}
       >

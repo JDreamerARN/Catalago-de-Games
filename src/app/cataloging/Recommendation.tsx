@@ -2,8 +2,12 @@ import { CssBaseline, Box, Typography } from '@mui/material';
 import { Navbar } from './components/Navbar';
 import { GamesCarousel } from './components/GamesCarousel';
 
-// Dados mockados dos jogos
-const topRatedGames = [
+const topRatedGames: Array<{
+  name: string;
+  releaseYear: number;
+  rating: number;
+  image: string;
+}> = [
   { name: "FORTNITE", releaseYear: 2017, rating: 8, image: "/design/Fortnite.jpeg" },
   { name: "MINECRAFT", releaseYear: 2011, rating: 9, image: "/design/Minecraft.jpeg" },
   { name: "LEAGUE OF LEGENDS", releaseYear: 2009, rating: 9, image: "/design/LOL.jpg" },
@@ -25,35 +29,25 @@ const Recommendation: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', backgroundColor: '#F7F7F7', minHeight: '100vh' }}>
       <CssBaseline />
-      
       <Navbar />
-      
       <Box sx={{ width: '8px', backgroundColor: '#17191B', minHeight: '100vh' }} />
       
       <Box component="main" sx={{ 
         flexGrow: 1, 
         p: 3, 
         backgroundColor: '#F7F7F7',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center'
+        maxWidth: 'calc(100% - 8px)'
       }}>
-        <Box sx={{ 
+        <Typography variant="h4" sx={{ 
           mb: 4, 
-          width: '100%',
-          maxWidth: '1200px'
+          fontWeight: 'bold', 
+          color: '#17191B',
+          textAlign: 'center'
         }}>
-          <Typography variant="h4" sx={{ 
-            mb: 2, 
-            fontWeight: 'bold', 
-            color: '#17191B',
-            textAlign: 'center'
-          }}>
-            Jogos Mais Bem Avaliados
-          </Typography>
-          
-          <GamesCarousel games={topRatedGames} />
-        </Box>
+          Jogos Mais Bem Avaliados
+        </Typography>
+        
+        <GamesCarousel games={topRatedGames} />
       </Box>
     </Box>
   );
